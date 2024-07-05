@@ -1,13 +1,18 @@
 import tkinter as tk
 from tkinter import simpledialog, messagebox
 
+
 class DragAndDropApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Tkinter Grid of Boxes")
+        self.root.title("OS Game Group 31")
         self.root.geometry("800x600")
 
+        self.show_instructions()
+
         self.drag_data = {"x": 0, "y": 0, "item": None}  # Store drag data
+        self.placement_order = []  # Track order of blue boxes placement
+        self.all_boxes_placed = False  # Flag to check if all blue boxes are placed
 
         # Prompt user for number of block boxes
         self.num_boxes = self.prompt_num_boxes()
@@ -23,16 +28,32 @@ class DragAndDropApp:
         self.occupancy_frame = tk.Frame(self.root, bg="white", width=200, height=600)
         self.occupancy_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
-        self.occupancy_label = tk.Label(self.occupancy_frame, text="memory Box Occupancy", font=("Helvetica", 16))
+        self.occupancy_label = tk.Label(self.occupancy_frame, text="Memory Space Occupancy", font=("Helvetica", 16))
         self.occupancy_label.pack(pady=10)
 
         self.occupancy_text = tk.Text(self.occupancy_frame, wrap=tk.WORD, font=("Helvetica", 12))
         self.occupancy_text.pack(fill=tk.BOTH, expand=True)
 
-    def prompt_num_boxes(self):
-        # Prompt user to enter number of block boxes
-        return simpledialog.askinteger("Number of block Boxes", "Enter the number of block boxes:")
+    def show_instructions(self):
+        messagebox.showinfo("Instructions",
+                            "Welcome to OS Game Group 31!\n\n"
+                            "The purpose of this game is to let the user better understand how disk blocks are "
+                            "allocated for file using the Linked Allocation Method, where each file occupies a linked "
+                            "list of blocks. \n"
+                            "Instructions:\n"
+                            "- Drag and drop blue boxes (Blocks) into gray boxes (Memory Spaces).\n"
+                            "- Each gray box (Memory Space) can only contain one blue box (Block).\n"
+                            "- When a blue box (Block) is placed into a grey box (Memory Space), it will turn red to "
+                            "signify that the grey block (Memory Space) is occupied.\n"
+                            "- All blue boxes (Blocks) must be placed to complete the game.\n"
+                            "- Once all the blue boxes (Blocks) are placed, green arrows (Links) will appear to "
+                            "signify the order in which the blue boxes (Blocks) will be retrieved.\n\n"
+                            "Click OK to start placing blocks.")
 
+    def prompt_num_boxes(self):
+        # Prompt user to enter number of block boxes within the range of 1 to 40
+        return simpledialog.askinteger("Number of blocks", "Enter the number of blocks (1-10):", minvalue=1,
+                                       maxvalue=10)
     def create_grid(self):
         rows, cols = 10, 4
         cell_width, cell_height = 50, 50
@@ -46,15 +67,15 @@ class DragAndDropApp:
         self.canvas.pack(fill=tk.BOTH, expand=True)
 
         # Draw border rectangle around the grid
-        self.canvas.create_rectangle(5, 5, canvas_width - 5, canvas_height - 5, outline="green")
+        self.canvas.create_rectangle(5, 5, canvas_width - 5, canvas_height - 5, outline="orange")
 
-        # Create a green box outside the border
-        green_box_size = 60
-        green_box_x1 = canvas_width + 10
-        green_box_y1 = 10
-        green_box_x2 = green_box_x1 + green_box_size
-        green_box_y2 = green_box_y1 + green_box_size
-        self.canvas.create_rectangle(green_box_x1, green_box_y1, green_box_x2, green_box_y2, fill="green")
+        # Create a purple box outside the border
+        purple_box_size = 60
+        purple_box_x1 = canvas_width + 10
+        purple_box_y1 = 10
+        purple_box_x2 = purple_box_x1 + purple_box_size
+        purple_box_y2 = purple_box_y1 + purple_box_size
+        self.canvas.create_rectangle(purple_box_x1, purple_box_y1, purple_box_x2, purple_box_y2, fill="purple")
 
         # Calculate positions for block boxes dynamically based on number of boxes
         block_box_size = 30
@@ -62,17 +83,21 @@ class DragAndDropApp:
         self.block_boxes = []  # Initialize as an instance variable to store block box IDs and info
 
         for i in range(self.num_boxes):
-            block_box_x1 = green_box_x1 + (green_box_size - block_box_size) / 2
-            block_box_y1 = green_box_y1 + (green_box_size - block_box_size) / 2 + i * (block_box_size + block_box_margin)
+            block_box_x1 = purple_box_x1 + (purple_box_size - block_box_size) / 2
+            block_box_y1 = purple_box_y1 + (purple_box_size - block_box_size) / 2 + i * (
+                    block_box_size + block_box_margin)
             block_box_x2 = block_box_x1 + block_box_size
             block_box_y2 = block_box_y1 + block_box_size
-            block_box_id = self.canvas.create_rectangle(block_box_x1, block_box_y1, block_box_x2, block_box_y2, fill="blue",
-                                                       tags=("draggable", f"block_box_{i}"))
+            block_box_id = self.canvas.create_rectangle(block_box_x1, block_box_y1, block_box_x2, block_box_y2,
+                                                        fill="blue",
+                                                        tags=("draggable", f"block_box_{i}"))
             self.block_boxes.append({
                 'id': block_box_id,
                 'number': i + 1,  # Unique number for each block box
-                'original_coords': (block_box_x1, block_box_y1, block_box_x2, block_box_y2)  # Store original coordinates
+                'original_coords': (block_box_x1, block_box_y1, block_box_x2, block_box_y2)
+                # Store original coordinates
             })
+            self.placement_order.append(block_box_id)  # Record the order of placement
 
         self.rectangles = []  # To store rectangle IDs
         self.labels = []  # To store label IDs
@@ -110,9 +135,13 @@ class DragAndDropApp:
         self.canvas.tag_raise("draggable")
 
         # record the item and its location
-        self.drag_data["item"] = self.canvas.find_closest(event.x, event.y)[0]
-        self.drag_data["x"] = event.x
-        self.drag_data["y"] = event.y
+        closest_item = self.canvas.find_closest(event.x, event.y)
+        if closest_item:
+            self.drag_data["item"] = closest_item[0]
+            self.drag_data["x"] = event.x
+            self.drag_data["y"] = event.y
+        else:
+            return
 
     def on_drag_motion(self, event):
         '''Handle dragging of a block box'''
@@ -127,6 +156,15 @@ class DragAndDropApp:
         self.drag_data["x"] = event.x
         self.drag_data["y"] = event.y
 
+        # Check if the box is being dragged outside the orange border
+        canvas_width = self.canvas.winfo_width()
+        canvas_height = self.canvas.winfo_height()
+        border_width = 5
+
+        if event.x < border_width or event.x > canvas_width - border_width or \
+                event.y < border_width or event.y > canvas_height - border_width:
+            self.canvas.coords(self.drag_data["item"], *self.block_boxes[self.drag_data["item"] - 1]['original_coords'])
+
     def on_drag_stop(self, event):
         '''End drag of a block box'''
         if not self.drag_data["item"]:
@@ -139,7 +177,7 @@ class DragAndDropApp:
 
         if event.x < border_width or event.x > canvas_width - border_width or \
                 event.y < border_width or event.y > canvas_height - border_width:
-            # If dropped outside the border, snap back to the green box position based on item
+            # If dropped outside the border, snap back to the purple box position based on item
             for block_box in self.block_boxes:
                 if self.drag_data["item"] == block_box['id']:
                     self.canvas.coords(self.drag_data["item"], *block_box['original_coords'])
@@ -171,7 +209,7 @@ class DragAndDropApp:
                 # Check if the memory box already contains a block box
                 if nearest_rect in self.memory_box_occupancy:
                     # If already occupied by another block box, show a message and snap back to the original position
-                    messagebox.showinfo("Occupied Box", "The memory box is already occupied.")
+                    messagebox.showinfo("Occupied Space", "The memory space is already occupied.")
                     for block_box in self.block_boxes:
                         if self.drag_data["item"] == block_box['id']:
                             self.canvas.coords(self.drag_data["item"], *block_box['original_coords'])
@@ -195,20 +233,76 @@ class DragAndDropApp:
 
                     # Update memory box occupancy dictionary
                     memory_box_number = self.canvas.itemcget(self.labels[self.rectangles.index(nearest_rect)], "text")
-                    block_box_number = next((block_box_info['number'] for block_box_info in self.block_boxes if block_box_info['id'] == self.drag_data["item"]), None)
+                    block_box_number = next((block_box_info['number'] for block_box_info in self.block_boxes if
+                                             block_box_info['id'] == self.drag_data["item"]), None)
                     if block_box_number is not None:
                         self.memory_box_occupancy[nearest_rect] = self.drag_data["item"]
 
                         # Update occupancy display
                         self.update_occupancy_display()
 
-                        messagebox.showinfo("Box Placement",
-                                            f"Block {block_box_number} was placed into memory {memory_box_number}.")
+                        messagebox.showinfo("Memory Allocation",
+                                            f"Block {block_box_number} was placed into memory space {memory_box_number}.")
+
+                        # Check if all block boxes are placed
+                        if all(self.canvas.itemcget(block_box['id'], "fill") == "red" for block_box in
+                               self.block_boxes):
+                            self.all_boxes_placed = True
+                            # Draw line between consecutive block boxes based on placement order
+                            self.draw_lines_between_boxes()
+
+        # Check if all boxes are placed and draw lines accordingly
+        if self.all_boxes_placed:
+            self.draw_lines_between_boxes()
 
         # reset the drag data
         self.drag_data["item"] = None
         self.drag_data["x"] = 0
         self.drag_data["y"] = 0
+
+    def draw_lines_between_boxes(self):
+        # Clear existing lines
+        self.canvas.delete("lines")
+
+        # Draw lines between consecutive block boxes based on placement order
+        for i in range(len(self.placement_order) - 1):
+            current_box = self.placement_order[i]
+            next_box = self.placement_order[i + 1]
+
+            x1, y1, x2, y2 = self.canvas.coords(current_box)
+            cx1, cy1 = (x1 + x2) / 2, (y1 + y2) / 2
+
+            x1, y1, x2, y2 = self.canvas.coords(next_box)
+            cx2, cy2 = (x1 + x2) / 2, (y1 + y2) / 2
+
+            # Draw the line with an arrow pointing towards the next block box
+            arrow_length = 10
+            self.canvas.create_line(cx1, cy1, cx2, cy2, fill="green", tags="lines",
+                                    arrow=tk.LAST, arrowshape=(arrow_length, arrow_length, 3))
+
+        # Display the message with the starting and ending positions and total number of red boxes
+        if self.placement_order:
+            start_box = self.placement_order[0]
+            end_box = self.placement_order[-1]
+
+            start_memory_box = next(
+                (mem_box for mem_box, block_box in self.memory_box_occupancy.items() if block_box == start_box), None)
+            end_memory_box = next(
+                (mem_box for mem_box, block_box in self.memory_box_occupancy.items() if block_box == end_box), None)
+
+            start_box_label = self.canvas.itemcget(self.labels[self.rectangles.index(start_memory_box)],
+                                                   "text") if start_memory_box else "N/A"
+            end_box_label = self.canvas.itemcget(self.labels[self.rectangles.index(end_memory_box)],
+                                                 "text") if end_memory_box else "N/A"
+
+            total_red_boxes = len(self.memory_box_occupancy)
+
+            messagebox.showinfo(
+                "Directory Information",
+                f"Start: {start_box_label}\n"
+                f"End: {end_box_label}\n"
+                f"Length: {total_red_boxes}"
+            )
 
     def update_occupancy_display(self):
         # Clear previous text
@@ -217,10 +311,14 @@ class DragAndDropApp:
         # Write updated occupancy information
         for memory_box, block_box in self.memory_box_occupancy.items():
             memory_box_number = self.canvas.itemcget(self.labels[self.rectangles.index(memory_box)], "text")
-            block_box_number = next((block_box_info['number'] for block_box_info in self.block_boxes if block_box_info['id'] == block_box), None)
+            block_box_number = next(
+                (block_box_info['number'] for block_box_info in self.block_boxes if block_box_info['id'] == block_box),
+                None)
             if block_box_number is not None:
-                self.occupancy_text.insert(tk.END, f"Memory {memory_box_number} occupied by Block {block_box_number}\n")
+                self.occupancy_text.insert(tk.END,
+                                           f"Memory Space {memory_box_number} occupied by Block {block_box_number}\n")
         self.occupancy_text.insert(tk.END, "\n")
+
 
 if __name__ == "__main__":
     root = tk.Tk()
