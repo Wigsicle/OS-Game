@@ -15,7 +15,7 @@ class DragAndDropApp:
         self.all_boxes_placed = False  # Flag to check if all blue boxes are placed
 
         # Prompt user for number of block boxes
-        self.num_boxes = self.prompt_num_boxes()
+        self.num_boxes = self.prompt_num_boxes() + 1
         if self.num_boxes is None:
             return  # Exit if user cancels the input
 
@@ -33,6 +33,9 @@ class DragAndDropApp:
 
         self.occupancy_text = tk.Text(self.occupancy_frame, wrap=tk.WORD, font=("Helvetica", 12))
         self.occupancy_text.pack(fill=tk.BOTH, expand=True)
+
+        # Initialize message_shown attribute
+        self.message_shown = False
 
     def show_instructions(self):
         messagebox.showinfo("Instructions",
@@ -52,8 +55,8 @@ class DragAndDropApp:
 
     def prompt_num_boxes(self):
         # Prompt user to enter number of block boxes within the range of 1 to 40
-        return simpledialog.askinteger("Number of blocks", "Enter the number of blocks (1-10):", minvalue=1,
-                                       maxvalue=10)
+        return simpledialog.askinteger("Number of blocks", "Enter the number of blocks (1-5):", minvalue=1,
+                                       maxvalue=5)
     def create_grid(self):
         rows, cols = 10, 4
         cell_width, cell_height = 50, 50
@@ -280,29 +283,32 @@ class DragAndDropApp:
             self.canvas.create_line(cx1, cy1, cx2, cy2, fill="green", tags="lines",
                                     arrow=tk.LAST, arrowshape=(arrow_length, arrow_length, 3))
 
-        # Display the message with the starting and ending positions and total number of red boxes
-        if self.placement_order:
-            start_box = self.placement_order[0]
-            end_box = self.placement_order[-1]
+        # Display the message only once if all boxes are placed
+        if self.all_boxes_placed and not self.message_shown:
+            self.message_shown = True  # Flag to indicate message has been shown
+            if self.placement_order:
+                start_box = self.placement_order[0]
+                end_box = self.placement_order[-1]
 
-            start_memory_box = next(
-                (mem_box for mem_box, block_box in self.memory_box_occupancy.items() if block_box == start_box), None)
-            end_memory_box = next(
-                (mem_box for mem_box, block_box in self.memory_box_occupancy.items() if block_box == end_box), None)
+                start_memory_box = next(
+                    (mem_box for mem_box, block_box in self.memory_box_occupancy.items() if block_box == start_box),
+                    None)
+                end_memory_box = next(
+                    (mem_box for mem_box, block_box in self.memory_box_occupancy.items() if block_box == end_box), None)
 
-            start_box_label = self.canvas.itemcget(self.labels[self.rectangles.index(start_memory_box)],
-                                                   "text") if start_memory_box else "N/A"
-            end_box_label = self.canvas.itemcget(self.labels[self.rectangles.index(end_memory_box)],
-                                                 "text") if end_memory_box else "N/A"
+                start_box_label = self.canvas.itemcget(self.labels[self.rectangles.index(start_memory_box)],
+                                                       "text") if start_memory_box else "N/A"
+                end_box_label = self.canvas.itemcget(self.labels[self.rectangles.index(end_memory_box)],
+                                                     "text") if end_memory_box else "N/A"
 
-            total_red_boxes = len(self.memory_box_occupancy)
+                total_red_boxes = len(self.memory_box_occupancy)
 
-            messagebox.showinfo(
-                "Directory Information",
-                f"Start: {start_box_label}\n"
-                f"End: {end_box_label}\n"
-                f"Length: {total_red_boxes}"
-            )
+                messagebox.showinfo(
+                    "Directory Information",
+                    f"Start: {start_box_label}\n"
+                    f"End: {end_box_label}\n"
+                    f"Length: {total_red_boxes}"
+                )
 
     def update_occupancy_display(self):
         # Clear previous text
