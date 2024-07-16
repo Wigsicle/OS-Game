@@ -48,18 +48,20 @@ class DragAndDropApp:
         self.instruction_frame.pack(fill=tk.BOTH, expand=True)
 
         # Display the instructions in a label within the frame
-        instructions_text = ("Welcome to OS Game Group 31!\n\n"
-                             "The purpose of this game is to let the user better understand how disk blocks are "
-                             "allocated for a file using the Linked Allocation Method, where each file occupies a linked "
-                             "list of blocks. \n\n"
-                             "Instructions:\n"
-                             "- Drag and drop blue boxes (Blocks) into gray boxes (Memory Spaces).\n"
-                             "- Each gray box (Memory Space) can only contain one blue box (Block).\n"
-                             "- When a blue box (Block) is placed into a grey box (Memory Space), it will turn red to "
-                             "signify that the grey block (Memory Space) is occupied.\n"
-                             "- All blue boxes (Blocks) must be placed to complete the game.\n"
-                             "- Once all the blue boxes (Blocks) are placed, green arrows (Links) will appear to "
-                             "signify the order in which the blue boxes (Blocks) will be retrieved.\n\n")
+        instructions_text = (
+            "Welcome to OS Game Group 31!\n\n"
+            "The purpose of this game is to help users better understand how disk blocks are allocated for a file "
+            "using the Linked Allocation Method. In this method, each file occupies a linked list of blocks.\n\n"
+            "Instructions:\n"
+            "- Drag and drop blue boxes (Blocks) into grey boxes (Memory Spaces).\n"
+            "- Each gray box (Memory Space) can only contain one blue box (Block).\n"
+            "- When a blue box (Block) is placed into a grey box (Memory Space), it will turn red to signify that "
+            "the memory space is occupied.\n"
+            "- All blue boxes (Blocks) must be placed to complete the game.\n"
+            "- Once all the blue boxes (Blocks) are placed, green arrows (Links) will appear to signify the order "
+            "in which the blue boxes (Blocks) will be retrieved.\n\n"
+            "Enjoy the game and have fun learning about linked allocation!"
+        )
 
         self.instructions_label = tk.Label(master=self.instruction_frame, text=instructions_text, font=("Helvetica", 12),
                                       justify=tk.LEFT)
