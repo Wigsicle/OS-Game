@@ -1,12 +1,15 @@
 import tkinter as tk
-from tkinter import simpledialog, messagebox
+from tkinter import simpledialog, messagebox, ttk
 
 
 class DragAndDropApp:
+
     def __init__(self, root):
         self.root = root
         self.root.title("OS Game Group 31")
-        self.root.geometry("800x600")
+        self.root.geometry("1280x720")
+
+        self.setup_tabs()
 
         self.show_instructions()
 
@@ -25,10 +28,10 @@ class DragAndDropApp:
         self.memory_box_occupancy = {}
 
         # Create a frame to display memory box occupancy
-        self.occupancy_frame = tk.Frame(self.root, bg="white", width=200, height=600)
+        self.occupancy_frame = tk.Frame(master=self.tab2, bg="white", width=200, height=600)
         self.occupancy_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
-        self.occupancy_label = tk.Label(self.occupancy_frame, text="Memory Space Occupancy", font=("Helvetica", 16))
+        self.occupancy_label = tk.Label(master=self.occupancy_frame, text="Memory Space Occupancy", font=("Helvetica", 16))
         self.occupancy_label.pack(pady=10)
 
         self.occupancy_text = tk.Text(self.occupancy_frame, wrap=tk.WORD, font=("Helvetica", 12))
@@ -38,25 +41,91 @@ class DragAndDropApp:
         self.message_shown = False
 
     def show_instructions(self):
-        messagebox.showinfo("Instructions",
-                            "Welcome to OS Game Group 31!\n\n"
-                            "The purpose of this game is to let the user better understand how disk blocks are "
-                            "allocated for file using the Linked Allocation Method, where each file occupies a linked "
-                            "list of blocks. \n"
-                            "Instructions:\n"
-                            "- Drag and drop blue boxes (Blocks) into gray boxes (Memory Spaces).\n"
-                            "- Each gray box (Memory Space) can only contain one blue box (Block).\n"
-                            "- When a blue box (Block) is placed into a grey box (Memory Space), it will turn red to "
-                            "signify that the grey block (Memory Space) is occupied.\n"
-                            "- All blue boxes (Blocks) must be placed to complete the game.\n"
-                            "- Once all the blue boxes (Blocks) are placed, green arrows (Links) will appear to "
-                            "signify the order in which the blue boxes (Blocks) will be retrieved.\n\n"
-                            "Click OK to start placing blocks.")
+        # Create a new top-level window for the instructions
+
+        # Create a frame inside the top-level window
+        self.instruction_frame = tk.Frame(master=self.tab3, bg="white", padx=20, pady=20)
+        self.instruction_frame.pack(fill=tk.BOTH, expand=True)
+
+        # Display the instructions in a label within the frame
+        instructions_text = ("Welcome to OS Game Group 31!\n\n"
+                             "The purpose of this game is to let the user better understand how disk blocks are "
+                             "allocated for a file using the Linked Allocation Method, where each file occupies a linked "
+                             "list of blocks. \n\n"
+                             "Instructions:\n"
+                             "- Drag and drop blue boxes (Blocks) into gray boxes (Memory Spaces).\n"
+                             "- Each gray box (Memory Space) can only contain one blue box (Block).\n"
+                             "- When a blue box (Block) is placed into a grey box (Memory Space), it will turn red to "
+                             "signify that the grey block (Memory Space) is occupied.\n"
+                             "- All blue boxes (Blocks) must be placed to complete the game.\n"
+                             "- Once all the blue boxes (Blocks) are placed, green arrows (Links) will appear to "
+                             "signify the order in which the blue boxes (Blocks) will be retrieved.\n\n")
+
+        self.instructions_label = tk.Label(master=self.instruction_frame, text=instructions_text, font=("Helvetica", 12),
+                                      justify=tk.LEFT)
+        self.instructions_label.pack(fill=tk.BOTH, expand=True)
+
+        self.legend()
+
+    def legend(self):
+        # Add legend for memory spaces and blocks
+        legend_frame = tk.Frame(master=self.instruction_frame, bg="white", pady=10)
+        legend_frame.pack(fill=tk.X)
+
+        legend_title = tk.Label(master=legend_frame, text="Legend", font=("Helvetica", 14, "bold"))
+        legend_title.pack()
+
+        # Create canvas for legend items
+        legend_canvas = tk.Canvas(master=legend_frame, width=300, height=120, bg="white")
+        legend_canvas.pack()
+
+        # Draw legend items
+        box_size = 20
+        box_margin = 10
+        text_margin = 5
+
+        # Blue Box (Block)
+        legend_canvas.create_rectangle(10, 10, 10 + box_size, 10 + box_size, fill="blue")
+        legend_canvas.create_text(10 + box_size + text_margin, 10 + box_size / 2, text="Blue Box (Block)", anchor=tk.W)
+
+        # Light Grey Box (Available Memory Space)
+        legend_canvas.create_rectangle(10, 40, 10 + box_size, 40 + box_size, fill="lightgrey")
+        legend_canvas.create_text(10 + box_size + text_margin, 40 + box_size / 2, text="Light Grey Box (Memory Space)",
+                                  anchor=tk.W)
+
+        # Red Box (Occupied Memory Space)
+        legend_canvas.create_rectangle(10, 70, 10 + box_size, 70 + box_size, fill="red")
+        legend_canvas.create_text(10 + box_size + text_margin, 70 + box_size / 2,
+                                  text="Red Box (Occupied Memory Space)",
+                                  anchor=tk.W)
+
+        # Green Arrow (Retrieval Order)
+        arrow_start = (10, 100)
+        arrow_mid = (10 + box_size / 2, 120)
+        arrow_end = (10 + box_size, 100)
+        legend_canvas.create_line(arrow_start, arrow_mid, arrow_end, width=2, arrow=tk.LAST, fill="green")
+        legend_canvas.create_text(10 + box_size + text_margin, 110, text="Green Arrow (Retrieval Order)", anchor=tk.W)
+    def setup_tabs(self):
+        self.tab_control = ttk.Notebook(self.root)
+
+        self.tab1 = ttk.Frame(self.tab_control)
+        self.tab2 = ttk.Frame(self.tab_control)
+        self.tab3 = ttk.Frame(self.tab_control)
+
+        self.tab_control.add(self.tab1, text='Game')
+        self.tab_control.add(self.tab2, text='Occupancy')
+        self.tab_control.add(self.tab3, text='Instructions')
+
+        self.tab_control.pack(expand=1, fill="both")
+
+        self.tab_control.select(self.tab3)
+
 
     def prompt_num_boxes(self):
         # Prompt user to enter number of block boxes within the range of 1 to 40
         return simpledialog.askinteger("Number of blocks", "Enter the number of blocks (1-5):", minvalue=1,
                                        maxvalue=5)
+
     def create_grid(self):
         rows, cols = 10, 4
         cell_width, cell_height = 50, 50
@@ -66,7 +135,7 @@ class DragAndDropApp:
         canvas_width = cols * (cell_width + 50) + 50
         canvas_height = rows * (cell_height + row_spacing) + 10
 
-        self.canvas = tk.Canvas(self.root, bg="white", width=canvas_width, height=canvas_height)
+        self.canvas = tk.Canvas(master=self.tab1, bg="white", width=canvas_width, height=canvas_height)
         self.canvas.pack(fill=tk.BOTH, expand=True)
 
         # Draw border rectangle around the grid
