@@ -125,8 +125,8 @@ class DragAndDropApp:
 
     def prompt_num_boxes(self):
         # Prompt user to enter number of block boxes within the range of 1 to 40
-        return simpledialog.askinteger("Number of blocks", "Enter the number of blocks (1-5):", minvalue=1,
-                                       maxvalue=5)
+        return simpledialog.askinteger("Number of blocks", "Enter the number of blocks (1-9):", minvalue=1,
+                                       maxvalue=10)
 
     def create_grid(self):
         rows, cols = 10, 4
@@ -167,7 +167,7 @@ class DragAndDropApp:
                                                         tags=("draggable", f"block_box_{i}"))
             self.block_boxes.append({
                 'id': block_box_id,
-                'number': i + 1,  # Unique number for each block box
+                'number': i,  # Unique number for each block box
                 'original_coords': (block_box_x1, block_box_y1, block_box_x2, block_box_y2)
                 # Store original coordinates
             })
