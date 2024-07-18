@@ -1,12 +1,15 @@
 import tkinter as tk
-from tkinter import simpledialog, messagebox
+from tkinter import simpledialog, messagebox, ttk
 
 
 class DragAndDropApp:
+
     def __init__(self, root):
         self.root = root
         self.root.title("OS Game Group 31")
-        self.root.geometry("800x600")
+        self.root.geometry("1280x720")
+
+        self.setup_tabs()
 
         self.show_instructions()
 
@@ -14,8 +17,11 @@ class DragAndDropApp:
         self.placement_order = []  # Track order of blue boxes placement
         self.all_boxes_placed = False  # Flag to check if all blue boxes are placed
 
+        self.num_files = self.prompt_num_files()
+        if self.num_files is None:
+            return
         # Prompt user for number of block boxes
-        self.num_boxes = self.prompt_num_boxes()
+        self.num_boxes = self.prompt_num_boxes() + 1
         if self.num_boxes is None:
             return  # Exit if user cancels the input
 
@@ -25,39 +31,112 @@ class DragAndDropApp:
         self.memory_box_occupancy = {}
 
         # Create a frame to display memory box occupancy
-        self.occupancy_frame = tk.Frame(self.root, bg="white", width=200, height=600)
+        self.occupancy_frame = tk.Frame(master=self.tab2, bg="white", width=200, height=600)
         self.occupancy_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
-        self.occupancy_label = tk.Label(self.occupancy_frame, text="Memory Space Occupancy", font=("Helvetica", 16))
+        self.occupancy_label = tk.Label(master=self.occupancy_frame, text="Memory Space Occupancy",
+                                        font=("Helvetica", 16))
         self.occupancy_label.pack(pady=10)
 
         self.occupancy_text = tk.Text(self.occupancy_frame, wrap=tk.WORD, font=("Helvetica", 12))
         self.occupancy_text.pack(fill=tk.BOTH, expand=True)
 
+        # Initialize message_shown attribute
+        self.message_shown = False
+
     def show_instructions(self):
-        messagebox.showinfo("Instructions",
-                            "Welcome to OS Game Group 31!\n\n"
-                            "The purpose of this game is to let the user better understand how disk blocks are "
-                            "allocated for file using the Linked Allocation Method, where each file occupies a linked "
-                            "list of blocks. \n"
-                            "Instructions:\n"
-                            "- Drag and drop blue boxes (Blocks) into gray boxes (Memory Spaces).\n"
-                            "- Each gray box (Memory Space) can only contain one blue box (Block).\n"
-                            "- When a blue box (Block) is placed into a grey box (Memory Space), it will turn red to "
-                            "signify that the grey block (Memory Space) is occupied.\n"
-                            "- All blue boxes (Blocks) must be placed to complete the game.\n"
-                            "- Once all the blue boxes (Blocks) are placed, green arrows (Links) will appear to "
-                            "signify the order in which the blue boxes (Blocks) will be retrieved.\n\n"
-                            "Click OK to start placing blocks.")
+        # Create a new top-level window for the instructions
+
+        # Create a frame inside the top-level window
+        self.instruction_frame = tk.Frame(master=self.tab3, bg="white", padx=20, pady=20)
+        self.instruction_frame.pack(fill=tk.BOTH, expand=True)
+
+        # Display the instructions in a label within the frame
+        instructions_text = (
+            "Welcome to OS Game Group 31!\n\n"
+            "The purpose of this game is to help users better understand how disk blocks are allocated for a file "
+            "using the Linked Allocation Method. In this method, each file occupies a linked list of blocks.\n\n"
+            "Instructions:\n"
+            "- Drag and drop blue boxes (Blocks) into grey boxes (Memory Spaces).\n"
+            "- Each gray box (Memory Space) can only contain one blue box (Block).\n"
+            "- When a blue box (Block) is placed into a grey box (Memory Space), it will turn red to signify that "
+            "the memory space is occupied.\n"
+            "- All blue boxes (Blocks) must be placed to complete the game.\n"
+            "- Once all the blue boxes (Blocks) are placed, green arrows (Links) will appear to signify the order "
+            "in which the blue boxes (Blocks) will be retrieved.\n"
+            "- A additional block will be added to your file to signify the enter block which has a value of (-1).\n\n"
+            "Enjoy the game and have fun learning about linked allocation!"
+        )
+
+        self.instructions_label = tk.Label(master=self.instruction_frame, text=instructions_text,
+                                           font=("Helvetica", 12),
+                                           justify=tk.LEFT)
+        self.instructions_label.pack(fill=tk.BOTH, expand=True)
+
+        self.legend()
+
+    def legend(self):
+        # Add legend for memory spaces and blocks
+        legend_frame = tk.Frame(master=self.instruction_frame, bg="white", pady=10)
+        legend_frame.pack(fill=tk.X)
+
+        legend_title = tk.Label(master=legend_frame, text="Legend", font=("Helvetica", 14, "bold"))
+        legend_title.pack()
+
+        # Create canvas for legend items
+        legend_canvas = tk.Canvas(master=legend_frame, width=300, height=120, bg="white")
+        legend_canvas.pack()
+
+        # Draw legend items
+        box_size = 20
+        box_margin = 10
+        text_margin = 5
+
+        # Blue Box (Block)
+        legend_canvas.create_rectangle(10, 10, 10 + box_size, 10 + box_size, fill="blue")
+        legend_canvas.create_text(10 + box_size + text_margin, 10 + box_size / 2, text="Blue Box (Block)", anchor=tk.W)
+
+        # Light Grey Box (Available Memory Space)
+        legend_canvas.create_rectangle(10, 40, 10 + box_size, 40 + box_size, fill="lightgrey")
+        legend_canvas.create_text(10 + box_size + text_margin, 40 + box_size / 2, text="Light Grey Box (Memory Space)",
+                                  anchor=tk.W)
+
+        # Red Box (Occupied Memory Space)
+        legend_canvas.create_rectangle(10, 70, 10 + box_size, 70 + box_size, fill="red")
+        legend_canvas.create_text(10 + box_size + text_margin, 70 + box_size / 2,
+                                  text="Red Box (Occupied Memory Space)",
+                                  anchor=tk.W)
+
+        # Green Arrow (Retrieval Order)
+        arrow_start = (10, 100)
+        arrow_mid = (10 + box_size / 2, 120)
+        arrow_end = (10 + box_size, 100)
+        legend_canvas.create_line(arrow_start, arrow_mid, arrow_end, width=2, arrow=tk.LAST, fill="green")
+        legend_canvas.create_text(10 + box_size + text_margin, 110, text="Green Arrow (Retrieval Order)", anchor=tk.W)
+
+    def setup_tabs(self):
+        self.tab_control = ttk.Notebook(self.root)
+
+        self.tab1 = ttk.Frame(self.tab_control)
+        self.tab2 = ttk.Frame(self.tab_control)
+        self.tab3 = ttk.Frame(self.tab_control)
+
+        self.tab_control.add(self.tab1, text='Game')
+        self.tab_control.add(self.tab2, text='Occupancy')
+        self.tab_control.add(self.tab3, text='Instructions')
+
+        self.tab_control.pack(expand=1, fill="both")
+
+        self.tab_control.select(self.tab3)
+
+    def prompt_num_files(self):
+        return simpledialog.askinteger("Number of files", "Enter the number of files (1-4):", minvalue=1, maxvalue=4)
 
     def prompt_num_boxes(self):
         # Prompt user to enter number of block boxes within the range of 1 to 40
-        num_boxes = simpledialog.askinteger("Number of blocks", "Enter the number of blocks (1-10):", minvalue=1,
-                                            maxvalue=10)
-        if num_boxes is not None:
-            return num_boxes + 1  # Add 1 to the entered number of blocks
-        else:
-            return None
+        return simpledialog.askinteger("Number of blocks", "Enter the number of blocks (1-9):", minvalue=1,
+                                       maxvalue=10)
+
     def create_grid(self):
         rows, cols = 10, 4
         cell_width, cell_height = 50, 50
@@ -67,7 +146,7 @@ class DragAndDropApp:
         canvas_width = cols * (cell_width + 50) + 50
         canvas_height = rows * (cell_height + row_spacing) + 10
 
-        self.canvas = tk.Canvas(self.root, bg="white", width=canvas_width, height=canvas_height)
+        self.canvas = tk.Canvas(master=self.tab1, bg="white", width=canvas_width, height=canvas_height)
         self.canvas.pack(fill=tk.BOTH, expand=True)
 
         # Draw border rectangle around the grid
@@ -75,33 +154,60 @@ class DragAndDropApp:
 
         # Create a purple box outside the border
         purple_box_size = 60
+        purple_box_margin = 10  # Space between purple boxes
+
+        # Initial coordinates for the first purple box
         purple_box_x1 = canvas_width + 10
-        purple_box_y1 = 10
-        purple_box_x2 = purple_box_x1 + purple_box_size
-        purple_box_y2 = purple_box_y1 + purple_box_size
-        self.canvas.create_rectangle(purple_box_x1, purple_box_y1, purple_box_x2, purple_box_y2, fill="purple")
+        purple_box_y1 = 20
+
+        for i in range(self.num_files):
+            # Calculate coordinates for each purple box
+            purple_box_x2 = purple_box_x1 + purple_box_size
+            purple_box_y2 = purple_box_y1 + purple_box_size
+
+            # Create the purple box on the canvas
+            self.canvas.create_rectangle(purple_box_x1, purple_box_y1, purple_box_x2, purple_box_y2, fill="purple")
+
+            # Add file label above the purple box
+            file_label_text = f"File {i}"
+            file_label_x = (purple_box_x1 + purple_box_x2) / 2
+            file_label_y = purple_box_y1 - 10  # Adjust the y-coordinate to give more space
+
+            self.canvas.create_text(file_label_x, file_label_y, text=file_label_text, anchor="center")
+
+            # Update coordinates for the next purple box horizontally
+            purple_box_x1 += purple_box_size + purple_box_margin
+            purple_box_x2 += purple_box_size + purple_box_margin
 
         # Calculate positions for block boxes dynamically based on number of boxes
         block_box_size = 30
         block_box_margin = 10
         self.block_boxes = []  # Initialize as an instance variable to store block box IDs and info
 
-        for i in range(self.num_boxes):
-            block_box_x1 = purple_box_x1 + (purple_box_size - block_box_size) / 2
-            block_box_y1 = purple_box_y1 + (purple_box_size - block_box_size) / 2 + i * (
-                    block_box_size + block_box_margin)
-            block_box_x2 = block_box_x1 + block_box_size
-            block_box_y2 = block_box_y1 + block_box_size
-            block_box_id = self.canvas.create_rectangle(block_box_x1, block_box_y1, block_box_x2, block_box_y2,
-                                                        fill="blue",
-                                                        tags=("draggable", f"block_box_{i}"))
-            self.block_boxes.append({
-                'id': block_box_id,
-                'number': i + 1,  # Unique number for each block box
-                'original_coords': (block_box_x1, block_box_y1, block_box_x2, block_box_y2)
-                # Store original coordinates
-            })
-            self.placement_order.append(block_box_id)  # Record the order of placement
+        for j in range(self.num_files):
+            # Calculate purple box coordinates for each iteration
+            purple_box_x1 = canvas_width + 10
+            purple_box_y1 = 10 + j * (purple_box_size + purple_box_margin)
+            purple_box_x2 = purple_box_x1 + purple_box_size
+            purple_box_y2 = purple_box_y1 + purple_box_size
+
+            for i in range(self.num_boxes):
+                block_box_x1 = purple_box_x1 + (purple_box_size - block_box_size) / 2
+                block_box_y1 = purple_box_y1 + (purple_box_size - block_box_size) / 2 + i * (
+                        block_box_size + block_box_margin)
+                block_box_x2 = block_box_x1 + block_box_size
+                block_box_y2 = block_box_y1 + block_box_size
+                block_box_id = self.canvas.create_rectangle(block_box_x1, block_box_y1, block_box_x2, block_box_y2,
+                                                            fill="blue",
+                                                            tags=("draggable", f"block_box_{j}_{i}"))
+                self.block_boxes.append({
+                    'id': block_box_id,
+                    'number': i,  # Unique number for each block box
+                    'file': j,
+                    'original_coords': (block_box_x1, block_box_y1, block_box_x2, block_box_y2)
+                    # Store original coordinates
+                })
+                self.placement_order.append(block_box_id)  # Record the order of placement
 
         self.rectangles = []  # To store rectangle IDs
         self.labels = []  # To store label IDs
@@ -115,7 +221,7 @@ class DragAndDropApp:
                 rect_id = self.canvas.create_rectangle(x1, y1, x2, y2, fill="lightgrey", outline="black",
                                                        tags=("box", f"box_{r}_{c}"))
                 label_text = f"{r * cols + c}"
-                label_id = self.canvas.create_text(x1 - 25, y1 + cell_height / 2, text=label_text, anchor="e")
+                label_id = self.canvas.create_text((x1 + x2) / 2, (y1 + y2) / 2, text=label_text, anchor="center")
                 self.rectangles.append(rect_id)
                 self.labels.append(label_id)
 
@@ -239,6 +345,8 @@ class DragAndDropApp:
                     memory_box_number = self.canvas.itemcget(self.labels[self.rectangles.index(nearest_rect)], "text")
                     block_box_number = next((block_box_info['number'] for block_box_info in self.block_boxes if
                                              block_box_info['id'] == self.drag_data["item"]), None)
+                    block_file_number = next((block_box_info['file'] for block_box_info in self.block_boxes if
+                                             block_box_info['id'] == self.drag_data["item"]), None)
                     if block_box_number is not None:
                         self.memory_box_occupancy[nearest_rect] = self.drag_data["item"]
 
@@ -246,7 +354,7 @@ class DragAndDropApp:
                         self.update_occupancy_display()
 
                         messagebox.showinfo("Memory Allocation",
-                                            f"Block {block_box_number} was placed into memory space {memory_box_number}.")
+                                            f"Block {block_box_number} was placed into memory space {memory_box_number} of file {block_file_number}.")
 
                         # Check if all block boxes are placed
                         if all(self.canvas.itemcget(block_box['id'], "fill") == "red" for block_box in
@@ -268,41 +376,58 @@ class DragAndDropApp:
         # Clear existing lines
         self.canvas.delete("lines")
 
-        # Draw lines between consecutive block boxes based on placement order
-        for i in range(len(self.placement_order) - 1):
-            current_box = self.placement_order[i]
-            next_box = self.placement_order[i + 1]
+        # Dictionary to store start and end information for each file
+        file_info = {}
 
-            x1, y1, x2, y2 = self.canvas.coords(current_box)
-            cx1, cy1 = (x1 + x2) / 2, (y1 + y2) / 2
+        # Iterate through each file
+        for file_id in range(self.num_files):
+            # Find all block boxes belonging to the current file
+            file_block_boxes = [box for box in self.block_boxes if box['file'] == file_id]
 
-            x1, y1, x2, y2 = self.canvas.coords(next_box)
-            cx2, cy2 = (x1 + x2) / 2, (y1 + y2) / 2
+            if file_block_boxes:
+                # Determine start and end block boxes for the current file
+                start_box_id = file_block_boxes[0]['id']
+                end_box_id = file_block_boxes[-1]['id']
 
-            # Draw the line with an arrow pointing towards the next block box
-            arrow_length = 10
-            self.canvas.create_line(cx1, cy1, cx2, cy2, fill="green", tags="lines",
-                                    arrow=tk.LAST, arrowshape=(arrow_length, arrow_length, 3))
+                # Draw lines between consecutive block boxes based on placement order within the file
+                for i in range(len(file_block_boxes) - 1):
+                    current_box_id = file_block_boxes[i]['id']
+                    next_box_id = file_block_boxes[i + 1]['id']
 
-        # Display the message with the starting and ending positions and total number of red boxes
-        if self.placement_order:
-            start_box = self.placement_order[0]
-            end_box = self.placement_order[-1]
+                    x1, y1, x2, y2 = self.canvas.coords(current_box_id)
+                    cx1, cy1 = (x1 + x2) / 2, (y1 + y2) / 2
 
-            start_memory_box = next(
-                (mem_box for mem_box, block_box in self.memory_box_occupancy.items() if block_box == start_box), None)
-            end_memory_box = next(
-                (mem_box for mem_box, block_box in self.memory_box_occupancy.items() if block_box == end_box), None)
+                    x1, y1, x2, y2 = self.canvas.coords(next_box_id)
+                    cx2, cy2 = (x1 + x2) / 2, (y1 + y2) / 2
 
-            start_box_label = self.canvas.itemcget(self.labels[self.rectangles.index(start_memory_box)],
-                                                   "text") if start_memory_box else "N/A"
-            end_box_label = self.canvas.itemcget(self.labels[self.rectangles.index(end_memory_box)],
-                                                 "text") if end_memory_box else "N/A"
+                    # Draw the line with an arrow pointing towards the next block box
+                    arrow_length = 10
+                    self.canvas.create_line(cx1, cy1, cx2, cy2, fill="green", tags="lines",
+                                            arrow=tk.LAST, arrowshape=(arrow_length, arrow_length, 3))
 
-            total_red_boxes = len(self.memory_box_occupancy)
+                # Store start and end information for the current file
+                start_memory_box = next(
+                    (mem_box for mem_box, block_box in self.memory_box_occupancy.items() if block_box == start_box_id),
+                    None)
+                end_memory_box = next(
+                    (mem_box for mem_box, block_box in self.memory_box_occupancy.items() if block_box == end_box_id),
+                    None)
 
+                start_box_label = self.canvas.itemcget(self.labels[self.rectangles.index(start_memory_box)],
+                                                       "text") if start_memory_box else "N/A"
+                end_box_label = self.canvas.itemcget(self.labels[self.rectangles.index(end_memory_box)],
+                                                     "text") if end_memory_box else "N/A"
+
+                total_red_boxes = len(self.memory_box_occupancy)
+
+                # Store file information for later display
+                file_info[file_id] = (start_box_label, end_box_label, total_red_boxes)
+
+        # After drawing all lines, display messagebox for each file
+        for file_id, info in file_info.items():
+            start_box_label, end_box_label, total_red_boxes = info
             messagebox.showinfo(
-                "Directory Information",
+                f"File Information - File {file_id}",
                 f"Start: {start_box_label}\n"
                 f"End: {end_box_label}\n"
                 f"Length: {total_red_boxes}"
@@ -318,9 +443,12 @@ class DragAndDropApp:
             block_box_number = next(
                 (block_box_info['number'] for block_box_info in self.block_boxes if block_box_info['id'] == block_box),
                 None)
+            block_file_number = next(
+                (block_box_info['file'] for block_box_info in self.block_boxes if block_box_info['id'] == block_box),
+                None)
             if block_box_number is not None:
                 self.occupancy_text.insert(tk.END,
-                                           f"Memory Space {memory_box_number} occupied by Block {block_box_number}\n")
+                                           f"Memory Space {memory_box_number} occupied by Block {block_box_number} of File {block_file_number}\n")
         self.occupancy_text.insert(tk.END, "\n")
 
 
