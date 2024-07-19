@@ -365,10 +365,9 @@ class DragAndDropApp:
                         if all(self.canvas.itemcget(block_box['id'], "fill") == "red" for block_box in
                                self.block_boxes):
                             self.all_boxes_placed = True
-                            # Draw line between consecutive block boxes based on placement order
-                            self.draw_lines_between_boxes()
 
-        # Check if all boxes are placed and draw lines accordingly
+
+        # # Check if all boxes are placed and draw lines accordingly
         if self.all_boxes_placed:
             self.draw_lines_between_boxes()
 
@@ -428,7 +427,11 @@ class DragAndDropApp:
                 # Store file information for later display
                 file_info[file_id] = (start_box_label, end_box_label, total_red_boxes)
 
-        # After drawing all lines, display messagebox for each file
+        self.display_file_info(file_info)
+
+    def display_file_info(self, file_info):
+        loop_counter = 0  # Initialize the counter
+
         for file_id, info in file_info.items():
             start_box_label, end_box_label, total_red_boxes = info
             messagebox.showinfo(
@@ -437,6 +440,11 @@ class DragAndDropApp:
                 f"End: {end_box_label}\n"
                 f"Length: {total_red_boxes}"
             )
+            loop_counter += 1  # Increment the counter each time the loop runs
+
+        # Print out the total count
+        print(f"The loop ran {loop_counter} times.")
+
 
     def update_occupancy_display(self):
         # Clear previous text
