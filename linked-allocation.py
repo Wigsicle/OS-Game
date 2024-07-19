@@ -84,7 +84,7 @@ class DragAndDropApp:
         legend_title.pack()
 
         # Create canvas for legend items
-        legend_canvas = tk.Canvas(master=legend_frame, width=300, height=120, bg="white")
+        legend_canvas = tk.Canvas(master=legend_frame, width=300, height=150, bg="white")
         legend_canvas.pack()
 
         # Draw legend items
@@ -92,27 +92,31 @@ class DragAndDropApp:
         box_margin = 10
         text_margin = 5
 
+        # Purple Box (File)
+        legend_canvas.create_rectangle(10, 10, 10 + box_size, 10 + box_size, fill="purple")
+        legend_canvas.create_text(10 + box_size + text_margin, 10 + box_size / 2, text="Purple Box (File)", anchor=tk.W)
+
         # Blue Box (Block)
-        legend_canvas.create_rectangle(10, 10, 10 + box_size, 10 + box_size, fill="blue")
-        legend_canvas.create_text(10 + box_size + text_margin, 10 + box_size / 2, text="Blue Box (Block)", anchor=tk.W)
+        legend_canvas.create_rectangle(10, 40, 10 + box_size, 40 + box_size, fill="blue")
+        legend_canvas.create_text(10 + box_size + text_margin, 40 + box_size / 2, text="Blue Box (Block)", anchor=tk.W)
 
         # Light Grey Box (Available Memory Space)
-        legend_canvas.create_rectangle(10, 40, 10 + box_size, 40 + box_size, fill="lightgrey")
-        legend_canvas.create_text(10 + box_size + text_margin, 40 + box_size / 2, text="Light Grey Box (Memory Space)",
+        legend_canvas.create_rectangle(10, 70, 10 + box_size, 70 + box_size, fill="lightgrey")
+        legend_canvas.create_text(10 + box_size + text_margin, 70 + box_size / 2, text="Light Grey Box (Memory Space)",
                                   anchor=tk.W)
 
         # Red Box (Occupied Memory Space)
-        legend_canvas.create_rectangle(10, 70, 10 + box_size, 70 + box_size, fill="red")
-        legend_canvas.create_text(10 + box_size + text_margin, 70 + box_size / 2,
+        legend_canvas.create_rectangle(10, 100, 10 + box_size, 100 + box_size, fill="red")
+        legend_canvas.create_text(10 + box_size + text_margin, 100 + box_size / 2,
                                   text="Red Box (Occupied Memory Space)",
                                   anchor=tk.W)
 
         # Green Arrow (Retrieval Order)
-        arrow_start = (10, 100)
-        arrow_mid = (10 + box_size / 2, 120)
-        arrow_end = (10 + box_size, 100)
+        arrow_start = (10, 130)
+        arrow_mid = (10 + box_size / 2, 140)
+        arrow_end = (10 + box_size, 130)
         legend_canvas.create_line(arrow_start, arrow_mid, arrow_end, width=2, arrow=tk.LAST, fill="green")
-        legend_canvas.create_text(10 + box_size + text_margin, 110, text="Green Arrow (Retrieval Order)", anchor=tk.W)
+        legend_canvas.create_text(10 + box_size + text_margin, 140, text="Green Arrow (Retrieval Order)", anchor=tk.W)
 
     def setup_tabs(self):
         self.tab_control = ttk.Notebook(self.root)
