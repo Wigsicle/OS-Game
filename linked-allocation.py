@@ -21,9 +21,13 @@ class DragAndDropApp:
         if self.num_files is None:
             return
         # Prompt user for number of block boxes
-        self.num_boxes = self.prompt_num_boxes() + 1
-        if self.num_boxes is None:
-            return  # Exit if user cancels the input
+
+        self.num_boxes = [0] * self.num_files
+
+        for i in range (self.num_files):
+            self.num_boxes[i] = self.prompt_num_boxes() + 1
+            if self.num_boxes is None:
+                return  # Exit if user cancels the input
 
         self.create_grid()
 
@@ -51,29 +55,160 @@ class DragAndDropApp:
         self.instruction_frame = tk.Frame(master=self.tab3, bg="white", padx=20, pady=20)
         self.instruction_frame.pack(fill=tk.BOTH, expand=True)
 
-        # Display the instructions in a label within the frame
-        instructions_text = (
-            "Welcome to OS Game Group 31!\n\n"
-            "The purpose of this game is to help users better understand how disk blocks are allocated for a file "
-            "using the Linked Allocation Method. In this method, each file occupies a linked list of blocks.\n\n"
-            "Instructions:\n"
-            "- Drag and drop blue boxes (Blocks) into grey boxes (Memory Spaces).\n"
-            "- Each gray box (Memory Space) can only contain one blue box (Block).\n"
-            "- When a blue box (Block) is placed into a grey box (Memory Space), it will turn red to signify that "
-            "the memory space is occupied.\n"
-            "- All blue boxes (Blocks) must be placed to complete the game.\n"
-            "- Once all the blue boxes (Blocks) are placed, green arrows (Links) will appear to signify the order "
-            "in which the blue boxes (Blocks) will be retrieved.\n"
-            "- A additional block will be added to your file to signify the enter block which has a value of (-1).\n\n"
-            "Enjoy the game and have fun learning about linked allocation!"
-        )
+        # Create a Text widget for styled instructions
+        self.instructions_text = tk.Text(master=self.instruction_frame, wrap=tk.WORD,
+                                         font=("Helvetica", 12),
+                                         bg="white", fg="black",
+                                         padx=10, pady=10)
+        self.instructions_text.pack(fill=tk.BOTH, expand=True)
 
-        self.instructions_label = tk.Label(master=self.instruction_frame, text=instructions_text,
-                                           font=("Helvetica", 12),
-                                           justify=tk.LEFT)
-        self.instructions_label.pack(fill=tk.BOTH, expand=True)
+        # Insert styled text into the Text widget
+        self.instructions_text.insert(tk.END, "Group 31: Linked Allocation Game\n\n", "welcome")
+
+        self.instructions_text.insert(tk.END,
+                                      "The purpose of this game is to help users better understand how disk blocks are allocated for a file "
+                                      "using the Linked Allocation Method.\n\n",
+                                      "info")
+
+        self.instructions_text.insert(tk.END, "Instructions:\n", "section_header")
+
+        self.instructions_text.insert(tk.END,
+                                      "Drag and drop ",
+                                      "info")
+        self.instructions_text.insert(tk.END,
+                                      " blue boxes (Blocks)", "block")
+        self.instructions_text.insert(tk.END,
+                                      " into the",
+                                      "info")
+        self.instructions_text.insert(tk.END,
+                                      " grey boxes (Memory Spaces)\n", "memory")
+        self.instructions_text.insert(tk.END,
+                                      "- Each",
+                                      "info")
+        self.instructions_text.insert(tk.END,
+                                      " grey box (Memory Space)", "memory")
+
+        self.instructions_text.insert(tk.END,
+                                      " can only contain one",
+                                      "info")
+        self.instructions_text.insert(tk.END,
+                                      " blue box (Block)\n", "block")
+        self.instructions_text.insert(tk.END,
+                                      "- When a",
+                                      "info")
+        self.instructions_text.insert(tk.END,
+                                      " blue box (Block)", "block")
+        self.instructions_text.insert(tk.END,
+                                      " is place into a",
+                                      "info")
+        self.instructions_text.insert(tk.END,
+                                      " grey box (Memory Space)", "memory")
+        self.instructions_text.insert(tk.END,
+                                      ", it will turn",
+                                      "info")
+        self.instructions_text.insert(tk.END,
+                                      " red",
+                                      "occupied")
+        self.instructions_text.insert(tk.END,
+                                      " to signify that the memory space is occupied.\n",
+                                      "info")
+        self.instructions_text.insert(tk.END,
+                                      "- All \n",
+                                      "info")
+        self.instructions_text.insert(tk.END,
+                                      " blue boxes (Blocks)", "block")
+        self.instructions_text.insert(tk.END,
+                                      " must be placed to complete the game.\n", "info")
+        self.instructions_text.insert(tk.END,
+                                      "- Once all the ", "info")
+        self.instructions_text.insert(tk.END,
+                                      " blue boxes (Blocks)", "block")
+        self.instructions_text.insert(tk.END,
+                                      " are placed,", "info")
+        self.instructions_text.insert(tk.END,
+                                      " green arrows (Links)", "arrows")
+        self.instructions_text.insert(tk.END,
+                                      " will appear to signify the order in which the", "info")
+        self.instructions_text.insert(tk.END,
+                                      " blue boxes (Blocks)", "block")
+
+        self.instructions_text.insert(tk.END,
+                                      " will be retrieved.\n", "info")
+        self.instructions_text.insert(tk.END,
+                                      "- An additional block will be added to your file to signify the end block, which has a value of (-1).\n\n",
+                                      "point")
+
+        self.instructions_text.insert(tk.END, "Enjoy the game and have fun learning about linked allocation!", "info")
+
+        self.instructions_text.insert(tk.END,
+                                      " blue boxes (Blocks)", "block")
+        # Apply tag formatting
+        self.instructions_text.tag_configure("welcome", font=("Helvetica", 14, "bold"))
+        self.instructions_text.tag_configure("info", font=("Helvetica", 12))
+        self.instructions_text.tag_configure("section_header", font=("Helvetica", 12, "bold"))
+        self.instructions_text.tag_configure("block", foreground="blue", font=("Helvetica", 12))
+        self.instructions_text.tag_configure("file", foreground="purple", font=("Helvetica", 12))
+        self.instructions_text.tag_configure("memory", foreground="grey", font=("Helvetica", 12))
+        self.instructions_text.tag_configure("arrows", foreground="green", font=("Helvetica", 12))
+        self.instructions_text.tag_configure("occupied", foreground="red", font=("Helvetica", 12))
+
+        # Disable text editing
+        self.instructions_text.config(state=tk.DISABLED)
 
         self.legend()
+
+        # Create a frame inside the top-level window
+        self.explanation_frame = tk.Frame(master=self.tab4, bg="white", padx=20, pady=20)
+        self.explanation_frame.pack(fill=tk.BOTH, expand=True)
+
+        # Create a Text widget
+        self.explanation_text = tk.Text(master=self.explanation_frame, wrap=tk.WORD,
+                                        font=("Helvetica", 12),
+                                        bg="white", fg="black",
+                                        padx=10, pady=10)
+        self.explanation_text.pack(fill=tk.BOTH, expand=True)
+
+        # Insert styled text into the Text widget
+        self.explanation_text.insert(tk.END, "How does Linked Allocation work?\n\n", "header")
+        self.explanation_text.insert(tk.END,
+                                     "Each file (purple box) comprises a linked list of blocks (blue boxes). These blocks may or may not be scattered on the disk.\n"
+                                     "Each block is made up of two parts: data and a pointer. The data stores the physical data, while the pointer stores the address of the next block.\n\n"
+                                     "Typically, a block has a size of 512 bytes: 508 bytes for the data and 4 bytes for the pointer.\n\n")
+
+        self.explanation_text.insert(tk.END, "Features:\n\n", "section_header_features")
+
+
+        # Insert Benefits with green and bold styling
+        self.explanation_text.insert(tk.END, "Benefits:\n", "section_header_benefit")
+        self.explanation_text.insert(tk.END,
+                                     "- No external fragmentation.\n"
+                                     "- No need for compaction.\n\n", "info")
+
+        # Insert Drawbacks with red and bold styling
+        self.explanation_text.insert(tk.END, "Drawbacks:\n", "section_header_drawback")
+        self.explanation_text.insert(tk.END,
+                                     "- Due to the scattering of the blocks, it may take more disk seeks to retrieve all the data.\n"
+                                     "- Since each block contains a pointer, the overall file size when using Linked Allocation is larger.\n"
+                                     "- If a pointer is lost or damaged, the process may or may not be able to retrieve the address of the next block.\n"
+                                     "- Low efficiency in random access: To find the ith block of a file, you must start at the beginning of the file.\n\n",
+                                     "info")
+
+        # Insert Improvement Techniques with blue styling
+        self.explanation_text.insert(tk.END, "Improvement Techniques:\n", "section_header_improvement")
+        self.explanation_text.insert(tk.END,
+                                     "- Grouping several blocks into a cluster can improve efficiency, but it increases internal fragmentation as more space is wasted for partially full clusters.\n",
+                                     "info")
+
+        # Apply tag formatting
+        self.explanation_text.tag_configure("header", font=("Helvetica", 14, "bold"))
+        self.explanation_text.tag_configure("info", font=("Helvetica", 12))
+        self.explanation_text.tag_configure("section_header_features", font=("Helvetica", 12, "bold"))
+        self.explanation_text.tag_configure("section_header_benefit", foreground="green", font=("Helvetica", 12, "bold"))
+        self.explanation_text.tag_configure("section_header_drawback", foreground="red", font=("Helvetica", 12, "bold"))
+        self.explanation_text.tag_configure("section_header_improvement", foreground="blue", font=("Helvetica", 12, "bold"))
+
+        # Disable text editing
+        self.explanation_text.config(state=tk.DISABLED)
 
     def legend(self):
         # Add legend for memory spaces and blocks
@@ -124,10 +259,12 @@ class DragAndDropApp:
         self.tab1 = ttk.Frame(self.tab_control)
         self.tab2 = ttk.Frame(self.tab_control)
         self.tab3 = ttk.Frame(self.tab_control)
+        self.tab4 = ttk.Frame(self.tab_control)
 
         self.tab_control.add(self.tab1, text='Game')
         self.tab_control.add(self.tab2, text='Occupancy')
         self.tab_control.add(self.tab3, text='Instructions')
+        self.tab_control.add(self.tab4, text='Explanation')
 
         self.tab_control.pack(expand=1, fill="both")
 
@@ -137,9 +274,9 @@ class DragAndDropApp:
         return simpledialog.askinteger("Number of files", "Enter the number of files (1-4):", minvalue=1, maxvalue=4)
 
     def prompt_num_boxes(self):
-        # Prompt user to enter number of block boxes within the range of 1 to 40
+        # Prompt user to enter number of block boxes within the range of 1 to 9
         return simpledialog.askinteger("Number of blocks", "Enter the number of blocks (1-9):", minvalue=1,
-                                       maxvalue=10)
+                                       maxvalue=9)
 
     def create_grid(self):
         rows, cols = 10, 4
@@ -196,7 +333,7 @@ class DragAndDropApp:
             purple_box_x2 = purple_box_x1 + purple_box_size
             purple_box_y2 = purple_box_y1 + purple_box_size
 
-            for i in range(self.num_boxes):
+            for i in range(self.num_boxes[j]):
                 # Calculate block box coordinates for each iteration
                 block_box_x1 = purple_box_x1 + (purple_box_size - block_box_size) / 2
                 block_box_y1 = purple_box_y2 + i * (block_box_size + block_box_margin) + block_box_margin
@@ -207,6 +344,20 @@ class DragAndDropApp:
                     fill="blue",
                     tags=("draggable", f"block_box_{j}_{i}")
                 )
+
+                # Calculate coordinates for the label to the right of the blue box
+                block_label_x = block_box_x2 + block_box_margin - 70
+                block_label_y = (block_box_y1 + block_box_y2) / 2
+                block_label_text = f"{j}_{i}"
+
+                # Add label to the right of the blue box with black text
+                block_label_id = self.canvas.create_text(block_label_x, block_label_y, text=block_label_text,
+                                                         anchor="w", fill="black",  # Text color set to black
+                                                         tags=("draggable", f"block_box_{j}_{i}"))
+
+                # Add label to the blue box
+                self.canvas.create_text(block_label_x, block_label_y, text=block_label_text, anchor="center",
+                                        fill="white")
 
                 self.block_boxes.append({
                     'id': block_box_id,
@@ -351,7 +502,7 @@ class DragAndDropApp:
                     block_box_number = next((block_box_info['number'] for block_box_info in self.block_boxes if
                                              block_box_info['id'] == self.drag_data["item"]), None)
                     block_file_number = next((block_box_info['file'] for block_box_info in self.block_boxes if
-                                             block_box_info['id'] == self.drag_data["item"]), None)
+                                              block_box_info['id'] == self.drag_data["item"]), None)
                     if block_box_number is not None:
                         self.memory_box_occupancy[nearest_rect] = self.drag_data["item"]
 
@@ -365,7 +516,6 @@ class DragAndDropApp:
                         if all(self.canvas.itemcget(block_box['id'], "fill") == "red" for block_box in
                                self.block_boxes):
                             self.all_boxes_placed = True
-
 
         # # Check if all boxes are placed and draw lines accordingly
         if self.all_boxes_placed:
@@ -422,7 +572,10 @@ class DragAndDropApp:
                 end_box_label = self.canvas.itemcget(self.labels[self.rectangles.index(end_memory_box)],
                                                      "text") if end_memory_box else "N/A"
 
-                total_red_boxes = len(self.memory_box_occupancy)
+                total_red_boxes = sum(
+                    1 for mem_box, block_box in self.memory_box_occupancy.items() if
+                    block_box in [box['id'] for box in file_block_boxes]
+                )
 
                 # Store file information for later display
                 file_info[file_id] = (start_box_label, end_box_label, total_red_boxes)
@@ -430,21 +583,16 @@ class DragAndDropApp:
         self.display_file_info(file_info)
 
     def display_file_info(self, file_info):
-        loop_counter = 0  # Initialize the counter
 
         for file_id, info in file_info.items():
             start_box_label, end_box_label, total_red_boxes = info
             messagebox.showinfo(
-                f"File Information - File {file_id}",
+                f"File Information",
+                    f"File: {file_id}\n"
                 f"Start: {start_box_label}\n"
                 f"End: {end_box_label}\n"
                 f"Length: {total_red_boxes}"
             )
-            loop_counter += 1  # Increment the counter each time the loop runs
-
-        # Print out the total count
-        print(f"The loop ran {loop_counter} times.")
-
 
     def update_occupancy_display(self):
         # Clear previous text
