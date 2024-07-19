@@ -84,7 +84,7 @@ class DragAndDropApp:
         legend_title.pack()
 
         # Create canvas for legend items
-        legend_canvas = tk.Canvas(master=legend_frame, width=300, height=150, bg="white")
+        legend_canvas = tk.Canvas(master=legend_frame, width=300, height=160, bg="white")
         legend_canvas.pack()
 
         # Draw legend items
@@ -156,12 +156,12 @@ class DragAndDropApp:
         # Draw border rectangle around the grid
         self.canvas.create_rectangle(5, 5, canvas_width - 5, canvas_height - 5, outline="orange")
 
-        # Create a purple box outside the border
+        # Create purple boxes outside the border
         purple_box_size = 60
         purple_box_margin = 10  # Space between purple boxes
 
-        # Initial coordinates for the first purple box
-        purple_box_x1 = canvas_width + 10
+        # Initial coordinates for the first purple box outside the border
+        purple_box_x1 = canvas_width + 20
         purple_box_y1 = 20
 
         for i in range(self.num_files):
@@ -181,29 +181,33 @@ class DragAndDropApp:
 
             # Update coordinates for the next purple box horizontally
             purple_box_x1 += purple_box_size + purple_box_margin
-            purple_box_x2 += purple_box_size + purple_box_margin
 
-        # Calculate positions for block boxes dynamically based on number of boxes
+        # Calculate positions for block boxes dynamically based on the number of boxes
         block_box_size = 30
         block_box_margin = 10
         self.block_boxes = []  # Initialize as an instance variable to store block box IDs and info
+        self.rectangles = []  # To store rectangle IDs
+        self.labels = []  # To store label IDs
 
         for j in range(self.num_files):
-            # Calculate purple box coordinates for each iteration
-            purple_box_x1 = canvas_width + 10
-            purple_box_y1 = 10 + j * (purple_box_size + purple_box_margin)
+            # Initial coordinates for the first purple box
+            purple_box_x1 = canvas_width + 20 + j * (purple_box_size + purple_box_margin)
+            purple_box_y1 = 20
             purple_box_x2 = purple_box_x1 + purple_box_size
             purple_box_y2 = purple_box_y1 + purple_box_size
 
             for i in range(self.num_boxes):
+                # Calculate block box coordinates for each iteration
                 block_box_x1 = purple_box_x1 + (purple_box_size - block_box_size) / 2
-                block_box_y1 = purple_box_y1 + (purple_box_size - block_box_size) / 2 + i * (
-                        block_box_size + block_box_margin)
+                block_box_y1 = purple_box_y2 + i * (block_box_size + block_box_margin) + block_box_margin
                 block_box_x2 = block_box_x1 + block_box_size
                 block_box_y2 = block_box_y1 + block_box_size
-                block_box_id = self.canvas.create_rectangle(block_box_x1, block_box_y1, block_box_x2, block_box_y2,
-                                                            fill="blue",
-                                                            tags=("draggable", f"block_box_{j}_{i}"))
+                block_box_id = self.canvas.create_rectangle(
+                    block_box_x1, block_box_y1, block_box_x2, block_box_y2,
+                    fill="blue",
+                    tags=("draggable", f"block_box_{j}_{i}")
+                )
+
                 self.block_boxes.append({
                     'id': block_box_id,
                     'number': i,  # Unique number for each block box
@@ -212,9 +216,6 @@ class DragAndDropApp:
                     # Store original coordinates
                 })
                 self.placement_order.append(block_box_id)  # Record the order of placement
-
-        self.rectangles = []  # To store rectangle IDs
-        self.labels = []  # To store label IDs
 
         for r in range(rows):
             for c in range(cols):
